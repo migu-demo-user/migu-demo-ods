@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>奥德赛 · 剪辑配乐 Demo</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", Arial, sans-serif;
+  background: #0A0C0F;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* ── 手机外壳 ── */
+.phone {
+  width: 375px;
+  background: #111318;
+  border-radius: 40px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(255,255,255,0.08);
+}
+.status-bar {
+  background: #111318;
+  padding: 12px 24px 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.status-bar .time { color: #fff; font-size: 15px; font-weight: 600; }
+.status-bar .icons { display: flex; gap: 6px; align-items: center; }
+.status-bar .icons i { color: #fff; font-size: 14px; }
+
+/* ── 应用头部 ── */
+.app-header {
+  background: #1A1D24;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.app-header .left { display: flex; align-items: center; gap: 8px; }
+.app-header .left i { color: #9CA3AF; font-size: 20px; }
+.app-header .title { color: #F3F4F6; font-size: 16px; font-weight: 500; }
+.app-header .right { display: flex; gap: 14px; }
+.app-header .right i { color: #9CA3AF; font-size: 20px; }
+.export-btn {
+  background: #3B82F6;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.export-btn:hover { background: #2563EB; }
+.export-btn.done { background: #10B981; }
+
+/* ── 视频预览 ── */
+.video-area {
+  background: #000;
+  height: 180px;
+  position: relative;
+  overflow: hidden;
+}
+.video-bg {
+  width: 100%; height: 100%;
+  background: linear-gradient(160deg, #0F1B2D 0%, #0D2418 40%, #1A0D28 100%);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 6px;
+}
+.video-bg i { font-size: 40px; color: rgba(255,255,255,0.2); }
+.video-bg span { font-size: 12px; color: rgba(255,255,255,0.25); }
+.video-controls {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,0.85));
+  padding: 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.play-pause {
+  width: 32px; height: 32px;
+  border-radius: 50%; background: rgba(255,255,255,0.15);
+  border: none; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s;
+}
+.play-pause:hover { background: rgba(255,255,255,0.25); }
+.play-pause i { color: #fff; font-size: 16px; }
+.progress-wrap { flex: 1; }
+.progress-track {
+  height: 3px; background: rgba(255,255,255,0.2);
+  border-radius: 2px; position: relative; cursor: pointer;
+}
+.progress-fill {
+  height: 100%; background: #fff; border-radius: 2px;
+  width: 0%; transition: width 0.1s linear;
+}
+.progress-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #fff; position: absolute; top: -3.5px;
+  left: 0%; transform: translateX(-50%);
+  transition: left 0.1s linear;
+}
+.time-text { color: rgba(255,255,255,0.6); font-size: 11px; }
+
+/* ── 时间轴 ── */
+.timeline-area {
+  background: #1A1D24;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.timeline-ruler {
+  display: flex; justify-content: space-between;
+  margin-bottom: 6px;
+}
+.timeline-ruler span { font-size: 9px; color: rgba(255,255,255,0.25); }
+.track-row {
+  display: flex; align-items: center;
+  gap: 8px; margin-bottom: 5px;
+}
+.track-row:last-child { margin-bottom: 0; }
+.track-label {
+  font-size: 10px; color: rgba(255,255,255,0.35);
+  width: 28px; flex-shrink: 0; text-align: right;
+}
+.track-body {
+  flex: 1; height: 24px; background: #0D1117;
+  border-radius: 4px; position: relative; overflow: hidden;
+}
+.track-clip-video {
+  position: absolute; top: 3px; bottom: 3px;
+  left: 0; right: 0;
+  background: linear-gradient(90deg, #1D4ED8, #3B82F6);
+  border-radius: 3px; opacity: 0.7;
+  display: flex; align-items: center; padding: 0 8px;
+}
+.track-clip-video span { font-size: 9px; color: rgba(255,255,255,0.6); }
+.track-clip-audio {
+  position: absolute; top: 3px; bottom: 3px;
+  left: 0; width: 0%;
+  background: linear-gradient(90deg, #065F46, #10B981);
+  border-radius: 3px; opacity: 0;
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex; align-items: center; padding: 0 8px; overflow: hidden;
+  cursor: grab;
+}
+.track-clip-audio.visible { opacity: 0.85; width: 75%; }
+.track-clip-audio.dragging { cursor: grabbing; opacity: 1; }
+.track-clip-audio span { font-size: 9px; color: rgba(255,255,255,0.7); white-space: nowrap; }
+.playhead {
+  position: absolute; top: 0; bottom: 0; left: 0%;
+  width: 1.5px; background: #fff; z-index: 10;
+  transition: left 0.1s linear;
+  pointer-events: none;
+}
+
+/* ── 工具栏 ── */
+.toolbar {
+  background: #1A1D24;
+  padding: 8px 16px;
+  display: flex; gap: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  overflow-x: auto;
+}
+.toolbar::-webkit-scrollbar { display: none; }
+.tool-btn {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 3px; padding: 6px 12px; border-radius: 8px;
+  cursor: pointer; transition: all 0.2s; border: none;
+  background: transparent; white-space: nowrap;
+}
+.tool-btn i { font-size: 18px; color: #9CA3AF; }
+.tool-btn span { font-size: 10px; color: #6B7280; }
+.tool-btn.active { background: rgba(59, 130, 246, 0.1); }
+.tool-btn.active i { color: #60A5FA; }
+.tool-btn.active span { color: #60A5FA; }
+.tool-btn:hover:not(.active) { background: rgba(255,255,255,0.04); }
+
+/* ── 配乐面板 ── */
+.music-panel {
+  background: #111318;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  max-height: 0;
+}
+.music-panel.open { max-height: 400px; }
+
+.panel-header {
+  padding: 12px 16px 0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.panel-header .panel-title { font-size: 14px; font-weight: 500; color: #F3F4F6; }
+.panel-header .close-btn {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: rgba(255,255,255,0.08); border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.panel-header .close-btn i { font-size: 14px; color: #9CA3AF; }
+
+/* 搜索框 */
+.search-box {
+  margin: 10px 16px 0;
+  background: #1A1D24;
+  border-radius: 8px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px;
+}
+.search-box i { font-size: 14px; color: #6B7280; }
+.search-box input {
+  flex: 1; background: transparent; border: none;
+  font-size: 13px; color: #F3F4F6; outline: none;
+}
+.search-box input::placeholder { color: #6B7280; }
+
+/* Tab */
+.panel-tabs {
+  display: flex; padding: 10px 16px 0;
+  gap: 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.panel-tab {
+  padding: 6px 14px; font-size: 13px;
+  color: #6B7280; cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s; border-radius: 4px 4px 0 0;
+}
+.panel-tab.active { color: #3B82F6; border-bottom-color: #3B82F6; }
+
+/* 音乐列表 */
+.music-list {
+  padding: 8px 12px;
+  display: flex; flex-direction: column; gap: 2px;
+  max-height: 220px; overflow-y: auto;
+}
+.music-list::-webkit-scrollbar { width: 3px; }
+.music-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+.music-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 8px; border-radius: 8px;
+  cursor: pointer; transition: all 0.15s;
+  position: relative;
+}
+.music-row:hover { background: rgba(255,255,255,0.04); }
+.music-row.selected { background: rgba(59,130,246,0.08); }
+.music-row.previewing { background: rgba(16,185,129,0.08); }
+
+.music-index {
+  width: 20px; text-align: center;
+  font-size: 12px; color: #6B7280; flex-shrink: 0;
+}
+.music-row.previewing .music-index { display: none; }
+.wave-icon {
+  display: none; width: 20px; justify-content: center; align-items: center; gap: 1px;
+}
+.music-row.previewing .wave-icon { display: flex; }
+.wave-icon span {
+  display: inline-block; width: 2px; background: #10B981; border-radius: 1px;
+  animation: wave 0.7s ease-in-out infinite;
+}
+.wave-icon span:nth-child(1) { height: 6px; }
+.wave-icon span:nth-child(2) { height: 12px; animation-delay: 0.1s; }
+.wave-icon span:nth-child(3) { height: 8px; animation-delay: 0.2s; }
+.wave-icon span:nth-child(4) { height: 14px; animation-delay: 0.15s; }
+
+.music-cover {
+  width: 40px; height: 40px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.music-info { flex: 1; min-width: 0; }
+.music-name {
+  font-size: 13px; font-weight: 500; color: #E5E7EB;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.music-meta { font-size: 11px; color: #6B7280; margin-top: 2px; }
+.music-row.selected .music-name { color: #60A5FA; }
+.music-row.previewing .music-name { color: #34D399; }
+
+.music-row-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.btn-preview {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: rgba(255,255,255,0.06); border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-preview i { font-size: 13px; color: #9CA3AF; }
+.btn-preview:hover { background: rgba(255,255,255,0.12); }
+.music-row.previewing .btn-preview { background: rgba(16,185,129,0.2); }
+.music-row.previewing .btn-preview i { color: #10B981; }
+
+.btn-add {
+  padding: 5px 12px; border-radius: 6px; border: none;
+  background: #1D4ED8; color: #fff; font-size: 12px;
+  cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.btn-add:hover { background: #2563EB; }
+.music-row.selected .btn-add { background: #065F46; }
+.music-row.selected .btn-add:hover { background: #047857; }
+.btn-fav {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: rgba(255,255,255,0.06); border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+}
+.btn-fav i { font-size: 14px; color: #9CA3AF; }
+.btn-fav:hover { background: rgba(255,255,255,0.12); }
+.btn-fav.faved i { color: #F87171; }
+.btn-fav.faved { background: rgba(248,113,113,0.1); }
+
+/* 音频编辑面板 */
+.audio-edit-panel {
+  background: #1A1D24;
+  padding: 0 16px;
+  max-height: 0; overflow: hidden;
+  transition: all 0.3s ease;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+.audio-edit-panel.open {
+  max-height: 160px;
+  padding: 12px 16px;
+}
+.edit-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 10px;
+}
+.edit-row:last-child { margin-bottom: 0; }
+.edit-label { font-size: 12px; color: #9CA3AF; width: 36px; flex-shrink: 0; }
+.edit-slider {
+  flex: 1; -webkit-appearance: none; height: 3px;
+  background: rgba(255,255,255,0.15); border-radius: 2px; outline: none;
+}
+.edit-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px;
+  border-radius: 50%; background: #3B82F6; cursor: pointer;
+}
+.edit-value { font-size: 12px; color: #6B7280; width: 32px; text-align: right; }
+.edit-tag {
+  padding: 3px 10px; border-radius: 12px; font-size: 11px;
+  background: rgba(59,130,246,0.15); color: #60A5FA;
+  cursor: pointer; border: 1px solid rgba(59,130,246,0.2);
+  transition: all 0.2s;
+}
+.edit-tag:hover { background: rgba(59,130,246,0.25); }
+.edit-tag.active { background: #1D4ED8; color: #fff; border-color: #1D4ED8; }
+
+/* 底部home bar */
+.home-bar {
+  background: #111318;
+  padding: 8px;
+  display: flex; justify-content: center;
+}
+.home-bar div {
+  width: 120px; height: 4px;
+  background: rgba(255,255,255,0.2); border-radius: 2px;
+}
+
+/* Toast */
+/* 彩铃弹窗 */
+.modal-mask {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 300; display: none;
+  align-items: flex-end; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.modal-mask.show { display: flex; }
+.modal-sheet {
+  background: #1A1D24;
+  border-radius: 20px 20px 0 0;
+  width: 375px; max-width: 100%;
+  padding: 0 0 32px;
+  animation: slideUp 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.modal-handle {
+  width: 36px; height: 4px; background: rgba(255,255,255,0.15);
+  border-radius: 2px; margin: 12px auto 16px;
+}
+.modal-title {
+  font-size: 16px; font-weight: 600; color: #F3F4F6;
+  text-align: center; margin-bottom: 4px;
+}
+.modal-subtitle {
+  font-size: 12px; color: #6B7280;
+  text-align: center; margin-bottom: 20px;
+}
+.modal-section {
+  padding: 0 20px; margin-bottom: 16px;
+}
+.modal-section-title {
+  font-size: 12px; color: #6B7280;
+  margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+}
+.modal-section-title i { font-size: 14px; }
+.info-card {
+  background: #111318; border-radius: 10px;
+  padding: 12px 14px;
+}
+.info-row {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.info-row:last-child { border-bottom: none; padding-bottom: 0; }
+.info-row i { font-size: 14px; color: #6B7280; flex-shrink: 0; margin-top: 1px; }
+.info-row-text { font-size: 12px; color: #D1D5DB; line-height: 1.5; }
+.info-row-text strong { color: #F3F4F6; }
+.plan-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.plan-row:last-child { border-bottom: none; }
+.plan-name { font-size: 13px; color: #E5E7EB; }
+.plan-desc { font-size: 11px; color: #6B7280; margin-top: 2px; }
+.plan-price {
+  font-size: 13px; font-weight: 500; color: #3B82F6;
+  background: rgba(59,130,246,0.1); padding: 3px 10px;
+  border-radius: 12px;
+}
+.flow-steps {
+  display: flex; align-items: center; gap: 0;
+  overflow-x: auto; padding-bottom: 4px;
+}
+.flow-steps::-webkit-scrollbar { display: none; }
+.flow-step {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px; flex-shrink: 0; min-width: 64px;
+}
+.flow-step-icon {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(59,130,246,0.15);
+  display: flex; align-items: center; justify-content: center;
+}
+.flow-step-icon i { font-size: 15px; color: #60A5FA; }
+.flow-step-label { font-size: 10px; color: #9CA3AF; text-align: center; line-height: 1.3; }
+.flow-arrow { font-size: 14px; color: #374151; flex-shrink: 0; margin: 0 2px; padding-bottom: 18px; }
+.modal-btns {
+  padding: 0 20px; display: flex; gap: 10px; margin-top: 4px;
+}
+.modal-btn-sec {
+  flex: 1; padding: 12px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: transparent; font-size: 14px; color: #9CA3AF;
+  cursor: pointer; transition: all 0.2s;
+}
+.modal-btn-sec:hover { background: rgba(255,255,255,0.05); }
+.modal-btn-pri {
+  flex: 2; padding: 12px; border-radius: 10px;
+  border: none; background: #3B82F6;
+  font-size: 14px; font-weight: 500; color: #fff;
+  cursor: pointer; transition: all 0.2s;
+}
+.modal-btn-pri:hover { background: #2563EB; }
+
+.toast {
+  position: fixed; bottom: 48px; left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: rgba(17,19,24,0.95);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #F3F4F6; padding: 10px 18px;
+  border-radius: 12px; font-size: 13px;
+  opacity: 0; transition: all 0.25s;
+  white-space: nowrap; z-index: 200;
+  backdrop-filter: blur(10px);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@keyframes wave {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.6); }
+}
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <!-- 状态栏 -->
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons">
+      <i class="ti ti-signal-4g"></i>
+      <i class="ti ti-wifi"></i>
+      <i class="ti ti-battery-3"></i>
+    </div>
+  </div>
+
+  <!-- 应用头部 -->
+  <div class="app-header">
+    <div class="left">
+      <i class="ti ti-chevron-left"></i>
+      <span class="title">视频剪辑</span>
+    </div>
+    <button class="export-btn" id="exportBtn" onclick="handleExport()">导出</button>
+  </div>
+
+  <!-- 视频预览 -->
+  <div class="video-area">
+    <div class="video-bg">
+      <i class="ti ti-video"></i>
+      <span>旅行vlog · 00:32</span>
+    </div>
+    <div class="video-controls">
+      <button class="play-pause" id="playBtn" onclick="togglePlay()">
+        <i class="ti ti-player-play" id="playIcon"></i>
+      </button>
+      <div class="progress-wrap">
+        <div class="progress-track" onclick="seekTo(event)">
+          <div class="progress-fill" id="progressFill"></div>
+          <div class="progress-dot" id="progressDot"></div>
+        </div>
+      </div>
+      <span class="time-text" id="timeText">0:00 / 0:32</span>
+    </div>
+  </div>
+
+  <!-- 时间轴 -->
+  <div class="timeline-area">
+    <div class="timeline-ruler">
+      <span>0s</span><span>8s</span><span>16s</span><span>24s</span><span>32s</span>
+    </div>
+    <div style="position:relative;">
+      <!-- 播放头 -->
+      <div class="playhead" id="playhead"></div>
+      <!-- 视频轨 -->
+      <div class="track-row">
+        <span class="track-label">视频</span>
+        <div class="track-body">
+          <div class="track-clip-video"><span>旅行vlog.mp4</span></div>
+        </div>
+      </div>
+      <!-- 音频轨 -->
+      <div class="track-row">
+        <span class="track-label">音乐</span>
+        <div class="track-body" id="audioTrackBody">
+          <div class="track-clip-audio" id="audioClip" onmousedown="startDrag(event)">
+            <span id="audioClipLabel">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 工具栏 -->
+  <div class="toolbar">
+    <button class="tool-btn" onclick="openTool('split')">
+      <i class="ti ti-cut"></i><span>分割</span>
+    </button>
+    <button class="tool-btn active" id="toolMusic" onclick="openTool('music')">
+      <i class="ti ti-music"></i><span>音乐</span>
+    </button>
+    <button class="tool-btn" onclick="openTool('text')">
+      <i class="ti ti-text-size"></i><span>文字</span>
+    </button>
+    <button class="tool-btn" onclick="openTool('filter')">
+      <i class="ti ti-adjustments"></i><span>滤镜</span>
+    </button>
+    <button class="tool-btn" onclick="openTool('speed')">
+      <i class="ti ti-player-track-next"></i><span>变速</span>
+    </button>
+    <button class="tool-btn" onclick="openTool('transition')">
+      <i class="ti ti-layers-intersect"></i><span>转场</span>
+    </button>
+  </div>
+
+  <!-- 配乐面板 -->
+  <div class="music-panel open" id="musicPanel">
+    <div class="panel-header">
+      <span class="panel-title">添加音乐</span>
+      <button class="close-btn" onclick="closePanel()"><i class="ti ti-x"></i></button>
+    </div>
+
+    <div class="search-box">
+      <i class="ti ti-search"></i>
+      <input type="text" placeholder="搜索歌曲、歌手" />
+    </div>
+
+    <div class="panel-tabs">
+      <div class="panel-tab active" id="ptabAI" onclick="switchPanelTab('ai')">AI 音乐</div>
+      <div class="panel-tab" id="ptabMusic" onclick="switchPanelTab('music')">音乐</div>
+      <div class="panel-tab" id="ptabFav" onclick="switchPanelTab('fav')">收藏</div>
+    </div>
+
+    <!-- AI音乐列表 -->
+    <div class="music-list" id="listAI">
+      <div class="music-row" onclick="selectTrack(this)" data-name="Ocean Breeze" data-meta="轻快 · 治愈 · 2:34">
+        <span class="music-index">1</span>
+        <div class="wave-icon"><span></span><span></span><span></span><span></span></div>
+        <div class="music-cover" style="background:linear-gradient(135deg,#1E3A5F,#1D4ED8);">🌊</div>
+        <div class="music-info">
+          <div class="music-name">Ocean Breeze</div>
+          <div class="music-meta">轻快 · 治愈 · 2:34</div>
+        </div>
+        <div class="music-row-actions">
+          <button class="btn-preview" onclick="event.stopPropagation();togglePreview(this)"><i class="ti ti-player-play"></i></button>
+          <button class="btn-fav" onclick="event.stopPropagation();toggleFav(this)" title="收藏"><i class="ti ti-heart"></i></button>
+          <button class="btn-add" onclick="event.stopPropagation();addTrack(this.closest('.music-row'))">使用</button>
+        </div>
+      </div>
+      <div class="music-row" onclick="selectTrack(this)" data-name="Forest Walk" data-meta="舒缓 · 自然 · 3:12">
+        <span class="music-index">2</span>
+        <div class="wave-icon"><span></span><span></span><span></span><span></span></div>
+        <div class="music-cover" style="background:linear-gradient(135deg,#14532D,#10B981);">🌿</div>
+        <div class="music-info">
+          <div class="music-name">Forest Walk</div>
+          <div class="music-meta">舒缓 · 自然 · 3:12</div>
+        </div>
+        <div class="music-row-actions">
+          <button class="btn-preview" onclick="event.stopPropagation();togglePreview(this)"><i class="ti ti-player-play"></i></button>
+          <button class="btn-fav" onclick="event.stopPropagation();toggleFav(this)" title="收藏"><i class="ti ti-heart"></i></button>
+          <button class="btn-add" onclick="event.stopPropagation();addTrack(this.closest('.music-row'))">使用</button>
+        </div>
+      </div>
+      <div class="music-row" onclick="selectTrack(this)" data-name="City Lights" data-meta="活力 · 都市 · 2:48">
+        <span class="music-index">3</span>
+        <div class="wave-icon"><span></span><span></span><span></span><span></span></div>
+        <div class="music-cover" style="background:linear-gradient(135deg,#312E81,#8B5CF6);">✨</div>
+        <div class="music-info">
+          <div class="music-name">City Lights</div>
+          <div class="music-meta">活力 · 都市 · 2:48</div>
+        </div>
+        <div class="music-row-actions">
+          <button class="btn-preview" onclick="event.stopPropagation();togglePreview(this)"><i class="ti ti-player-play"></i></button>
+          <button class="btn-fav" onclick="event.stopPropagation();toggleFav(this)" title="收藏"><i class="ti ti-heart"></i></button>
+          <button class="btn-add" onclick="event.stopPropagation();addTrack(this.closest('.music-row'))">使用</button>
+        </div>
+      </div>
+      <div class="music-row" onclick="selectTrack(this)" data-name="Golden Hour" data-meta="温暖 · 感动 · 3:28">
+        <span class="music-index">4</span>
+        <div class="wave-icon"><span></span><span></span><span></span><span></span></div>
+        <div class="music-cover" style="background:linear-gradient(135deg,#78350F,#F59E0B);">🌅</div>
+        <div class="music-info">
+          <div class="music-name">Golden Hour</div>
+          <div class="music-meta">温暖 · 感动 · 3:28</div>
+        </div>
+        <div class="music-row-actions">
+          <button class="btn-preview" onclick="event.stopPropagation();togglePreview(this)"><i class="ti ti-player-play"></i></button>
+          <button class="btn-fav" onclick="event.stopPropagation();toggleFav(this)" title="收藏"><i class="ti ti-heart"></i></button>
+          <button class="btn-add" onclick="event.stopPropagation();addTrack(this.closest('.music-row'))">使用</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 音乐列表 -->
+    <div class="music-list" id="listMusic" style="display:none;">
+      <div class="music-row" onclick="selectTrack(this)" data-name="起风了" data-meta="买辣椒也用券 · 4:15">
+        <span class="music-index">1</span>
+        <div class="wave-icon"><span></span><span></span><span></span><span></span></div>
+        <div class="music-cover" style="background:linear-gradient(135deg,#1E1B4B,#6D28D9);">🎵</div>
+        <div class="music-info">
+          <div class="music-name">起风了</div>
+          <div class="music-meta">买辣椒也用券 · 4:15</div>
+        </div>
+        <div class="music-row-actions">
+          <button class="btn-preview" onclick="event.stopPropagation();togglePreview(this)"><i class="ti ti-player-play"></i></button>
+          <button class="btn-fav" onclick="event.stopPropagation();toggleFav(this)" title="收藏"><i class="ti ti-heart"></i></button>
+          <button class="btn-add" onclick="event.stopPropagation();addTrack(this.closest('.music-row'))">使用</button>
+        </div>
+      </div>
+      <div class="music-row" onclick="selectTrack(this)" data-name="晴天" data-meta="周杰伦 · 4:29">
+        <span class="music-index">2</span>
+        <div class="wave-icon"><span></span><span></span><span></span><span></span></div>
+        <div class="music-cover" style="background:linear-gradient(135deg,#064E3B,#059669);">☀️</div>
+        <div class="music-info">
+          <div class="music-name">晴天</div>
+          <div class="music-meta">周杰伦 · 4:29</div>
+        </div>
+        <div class="music-row-actions">
+          <button class="btn-preview" onclick="event.stopPropagation();togglePreview(this)"><i class="ti ti-player-play"></i></button>
+          <button class="btn-fav" onclick="event.stopPropagation();toggleFav(this)" title="收藏"><i class="ti ti-heart"></i></button>
+          <button class="btn-add" onclick="event.stopPropagation();addTrack(this.closest('.music-row'))">使用</button>
+        </div>
+      </div>
+      <div class="music-row" onclick="selectTrack(this)" data-name="漠河舞厅" data-meta="柳爽 · 4:07">
+        <span class="music-index">3</span>
+        <div class="wave-icon"><span></span><span></span><span></span><span></span></div>
+        <div class="music-cover" style="background:linear-gradient(135deg,#1E3A5F,#2563EB);">🌌</div>
+        <div class="music-info">
+          <div class="music-name">漠河舞厅</div>
+          <div class="music-meta">柳爽 · 4:07</div>
+        </div>
+        <div class="music-row-actions">
+          <button class="btn-preview" onclick="event.stopPropagation();togglePreview(this)"><i class="ti ti-player-play"></i></button>
+          <button class="btn-fav" onclick="event.stopPropagation();toggleFav(this)" title="收藏"><i class="ti ti-heart"></i></button>
+          <button class="btn-add" onclick="event.stopPropagation();addTrack(this.closest('.music-row'))">使用</button>
+        </div>
+      </div>
+      <div class="music-row" onclick="selectTrack(this)" data-name="夜曲" data-meta="周杰伦 · 3:58">
+        <span class="music-index">4</span>
+        <div class="wave-icon"><span></span><span></span><span></span><span></span></div>
+        <div class="music-cover" style="background:linear-gradient(135deg,#7F1D1D,#DC2626);">🌙</div>
+        <div class="music-info">
+          <div class="music-name">夜曲</div>
+          <div class="music-meta">周杰伦 · 3:58</div>
+        </div>
+        <div class="music-row-actions">
+          <button class="btn-preview" onclick="event.stopPropagation();togglePreview(this)"><i class="ti ti-player-play"></i></button>
+          <button class="btn-fav" onclick="event.stopPropagation();toggleFav(this)" title="收藏"><i class="ti ti-heart"></i></button>
+          <button class="btn-add" onclick="event.stopPropagation();addTrack(this.closest('.music-row'))">使用</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 收藏（空状态） -->
+    <div class="music-list" id="listFav" style="display:none;">
+      <div style="text-align:center;padding:30px 0;color:#4B5563;font-size:13px;">
+        <i class="ti ti-heart" style="font-size:28px;display:block;margin-bottom:8px;"></i>
+        暂无收藏，点击歌曲旁的♡收藏
+      </div>
+    </div>
+  </div>
+
+  <!-- 音频编辑面板（添加后显示） -->
+  <div class="audio-edit-panel" id="audioEditPanel">
+    <div style="font-size:12px;color:#9CA3AF;margin-bottom:8px;" id="editPanelTitle">正在编辑：—</div>
+    <div class="edit-row">
+      <span class="edit-label">音量</span>
+      <input type="range" class="edit-slider" min="0" max="100" value="80" oninput="updateVolume(this)">
+      <span class="edit-value" id="volVal">80%</span>
+    </div>
+    <div class="edit-row">
+      <span class="edit-label">淡入</span>
+      <div style="display:flex;gap:6px;">
+        <span class="edit-tag" onclick="toggleTag(this)">无</span>
+        <span class="edit-tag active" onclick="toggleTag(this)">0.5s</span>
+        <span class="edit-tag" onclick="toggleTag(this)">1s</span>
+        <span class="edit-tag" onclick="toggleTag(this)">2s</span>
+      </div>
+    </div>
+    <div class="edit-row">
+      <span class="edit-label">淡出</span>
+      <div style="display:flex;gap:6px;">
+        <span class="edit-tag" onclick="toggleTag(this)">无</span>
+        <span class="edit-tag" onclick="toggleTag(this)">0.5s</span>
+        <span class="edit-tag active" onclick="toggleTag(this)">1s</span>
+        <span class="edit-tag" onclick="toggleTag(this)">2s</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-bar"><div></div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- 咪咕彩铃弹窗 -->
+<div class="modal-mask" id="ringtoneMask" onclick="closeRingtone(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">设置为视频彩铃</div>
+    <div class="modal-subtitle">剪辑完成后一键设置为中国移动视频彩铃</div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">
+        <i class="ti ti-shield-check"></i>基础前提
+      </div>
+      <div class="info-card">
+        <div class="info-row">
+          <i class="ti ti-info-circle"></i>
+          <div class="info-row-text">需开通<strong>中国移动视频彩铃</strong>功能，仅移动号码可用</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">
+        <i class="ti ti-currency-yuan"></i>资费规则
+      </div>
+      <div class="info-card">
+        <div class="plan-row">
+          <div>
+            <div class="plan-name">免费体验</div>
+            <div class="plan-desc">未订购套餐</div>
+          </div>
+          <div class="plan-price">免费 1 次</div>
+        </div>
+        <div class="plan-row">
+          <div>
+            <div class="plan-name">无限制作</div>
+            <div class="plan-desc">不限次数制作、更换彩铃内容</div>
+          </div>
+          <div class="plan-price">6元/月</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">
+        <i class="ti ti-route"></i>完整流程
+      </div>
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="flow-step-icon"><i class="ti ti-scissors"></i></div>
+          <div class="flow-step-label">剪辑<br>制作</div>
+        </div>
+        <span class="flow-arrow">›</span>
+        <div class="flow-step">
+          <div class="flow-step-icon"><i class="ti ti-shield-check"></i></div>
+          <div class="flow-step-label">功能开通<br>内容审核</div>
+        </div>
+        <span class="flow-arrow">›</span>
+        <div class="flow-step">
+          <div class="flow-step-icon"><i class="ti ti-device-mobile"></i></div>
+          <div class="flow-step-label">绑定<br>手机号</div>
+        </div>
+        <span class="flow-arrow">›</span>
+        <div class="flow-step">
+          <div class="flow-step-icon"><i class="ti ti-check"></i></div>
+          <div class="flow-step-label">审核通过<br>即刻生效</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-btns">
+      <button class="modal-btn-sec" onclick="closeRingtoneBtn()">稍后设置</button>
+      <button class="modal-btn-pri" onclick="confirmRingtone()">立即设置彩铃</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── 播放逻辑
+let isPlaying = false;
+let progress = 0;
+let playTimer = null;
+
+function togglePlay() {
+  isPlaying = !isPlaying;
+  const icon = document.getElementById('playIcon');
+  icon.className = isPlaying ? 'ti ti-player-pause' : 'ti ti-player-play';
+  if (isPlaying) {
+    playTimer = setInterval(() => {
+      progress = Math.min(progress + 0.3, 100);
+      updateProgress(progress);
+      if (progress >= 100) { progress = 0; isPlaying = false; icon.className = 'ti ti-player-play'; clearInterval(playTimer); }
+    }, 96);
+  } else {
+    clearInterval(playTimer);
+  }
+}
+
+function updateProgress(p) {
+  document.getElementById('progressFill').style.width = p + '%';
+  document.getElementById('progressDot').style.left = p + '%';
+  document.getElementById('playhead').style.left = p + '%';
+  const sec = Math.floor(p / 100 * 32);
+  const m = Math.floor(sec / 60), s = sec % 60;
+  document.getElementById('timeText').textContent = `${m}:${s.toString().padStart(2,'0')} / 0:32`;
+}
+
+function seekTo(e) {
+  const rect = e.currentTarget.getBoundingClientRect();
+  progress = Math.max(0, Math.min(100, (e.clientX - rect.left) / rect.width * 100));
+  updateProgress(progress);
+}
+
+// ── 配乐面板
+let currentPreviewBtn = null;
+let currentSelected = null;
+let addedTrack = null;
+
+function switchPanelTab(tab) {
+  ['AI','Music','Fav'].forEach(t => {
+    document.getElementById('ptab'+t).classList.toggle('active', t.toLowerCase() === tab || (tab==='music' && t==='Music') || (tab==='ai' && t==='AI') || (tab==='fav' && t==='Fav'));
+  });
+  document.getElementById('listAI').style.display = tab === 'ai' ? 'flex' : 'none';
+  document.getElementById('listMusic').style.display = tab === 'music' ? 'flex' : 'none';
+  document.getElementById('listFav').style.display = tab === 'fav' ? 'flex' : 'none';
+}
+
+function selectTrack(row) {
+  if (currentSelected) currentSelected.classList.remove('selected');
+  row.classList.add('selected');
+  currentSelected = row;
+}
+
+function togglePreview(btn) {
+  const row = btn.closest('.music-row');
+  if (currentPreviewBtn === btn) {
+    btn.innerHTML = '<i class="ti ti-player-play"></i>';
+    row.classList.remove('previewing');
+    currentPreviewBtn = null;
+    return;
+  }
+  if (currentPreviewBtn) {
+    currentPreviewBtn.innerHTML = '<i class="ti ti-player-play"></i>';
+    currentPreviewBtn.closest('.music-row').classList.remove('previewing');
+  }
+  currentPreviewBtn = btn;
+  btn.innerHTML = '<i class="ti ti-player-pause"></i>';
+  row.classList.add('previewing');
+  selectTrack(row);
+}
+
+function addTrack(row) {
+  const name = row.dataset.name;
+  addedTrack = name;
+
+  // 时间轴显示音频轨
+  const clip = document.getElementById('audioClip');
+  document.getElementById('audioClipLabel').textContent = name;
+  clip.classList.add('visible');
+
+  // 关闭配乐面板
+  document.getElementById('musicPanel').classList.remove('open');
+
+  // 打开编辑面板
+  document.getElementById('audioEditPanel').classList.add('open');
+  document.getElementById('editPanelTitle').textContent = `正在编辑：${name}`;
+
+  // 工具栏状态
+  document.getElementById('toolMusic').classList.add('active');
+
+  // 停止预览
+  if (currentPreviewBtn) {
+    currentPreviewBtn.innerHTML = '<i class="ti ti-player-play"></i>';
+    currentPreviewBtn.closest('.music-row').classList.remove('previewing');
+    currentPreviewBtn = null;
+  }
+
+  showToast(`《${name}》已添加到音乐轨 ✓`);
+}
+
+function closePanel() {
+  document.getElementById('musicPanel').classList.remove('open');
+  if (!addedTrack) {
+    document.getElementById('toolMusic').classList.remove('active');
+  }
+}
+
+function openTool(tool) {
+  document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  if (tool === 'music') {
+    document.getElementById('musicPanel').classList.add('open');
+    document.getElementById('audioEditPanel').classList.remove('open');
+  } else {
+    document.getElementById('musicPanel').classList.remove('open');
+    document.getElementById('audioEditPanel').classList.remove('open');
+    showToast(`${tool === 'split' ? '分割' : tool === 'text' ? '文字' : tool === 'filter' ? '滤镜' : tool === 'speed' ? '变速' : '转场'} 功能 Demo 展示中`);
+  }
+}
+
+// ── 音频编辑
+function updateVolume(slider) {
+  document.getElementById('volVal').textContent = slider.value + '%';
+}
+
+function toggleTag(tag) {
+  const siblings = tag.parentElement.querySelectorAll('.edit-tag');
+  siblings.forEach(t => t.classList.remove('active'));
+  tag.classList.add('active');
+}
+
+// ── 时间轴拖拽
+let isDragging = false;
+let dragStartX = 0;
+let clipStartLeft = 0;
+
+function startDrag(e) {
+  const clip = document.getElementById('audioClip');
+  if (!clip.classList.contains('visible')) return;
+  isDragging = true;
+  dragStartX = e.clientX;
+  clipStartLeft = parseFloat(clip.style.left) || 0;
+  clip.classList.add('dragging');
+  e.preventDefault();
+}
+
+document.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  const clip = document.getElementById('audioClip');
+  const body = document.getElementById('audioTrackBody');
+  const rect = body.getBoundingClientRect();
+  const delta = (e.clientX - dragStartX) / rect.width * 100;
+  const newLeft = Math.max(0, Math.min(25, clipStartLeft + delta));
+  clip.style.left = newLeft + '%';
+});
+
+document.addEventListener('mouseup', () => {
+  if (!isDragging) return;
+  isDragging = false;
+  document.getElementById('audioClip').classList.remove('dragging');
+});
+
+// ── 导出
+function handleExport() {
+  const btn = document.getElementById('exportBtn');
+  if (!addedTrack) {
+    showToast('请先添加音乐再导出');
+    return;
+  }
+  btn.textContent = '导出中...';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.textContent = '✓ 完成';
+    btn.classList.add('done');
+    showToast('视频已导出到相册 🎉');
+    // 导出完成后弹出彩铃引导
+    setTimeout(() => openRingtone(), 800);
+  }, 1800);
+}
+
+function openRingtone() {
+  document.getElementById('ringtoneMask').classList.add('show');
+}
+
+function closeRingtone(e) {
+  if (e.target === document.getElementById('ringtoneMask')) {
+    document.getElementById('ringtoneMask').classList.remove('show');
+  }
+}
+
+function closeRingtoneBtn() {
+  document.getElementById('ringtoneMask').classList.remove('show');
+  showToast('可在「我的」中随时设置彩铃');
+}
+
+function confirmRingtone() {
+  document.getElementById('ringtoneMask').classList.remove('show');
+  showToast('正在跳转开通页面... 🎵');
+}
+
+function toggleFav(btn) {
+  btn.classList.toggle('faved');
+  const isFaved = btn.classList.contains('faved');
+  btn.querySelector('i').className = isFaved ? 'ti ti-heart-filled' : 'ti ti-heart';
+  showToast(isFaved ? '已收藏 ❤️' : '已取消收藏');
+}
+
+// ── Toast
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
